@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
   if (event.type === "charge.succeeded") {
     const charge = event.data.object
     const productId = charge.metadata.productId
+    const discountCodeId = charge.metadata.discountCodeId
     const email = charge.billing_details.email
     const pricePaidInCents = charge.amount
 
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const userFields = {
       email,
-      orders: { create: { productId, pricePaidInCents } },
+      orders: { create: { productId, pricePaidInCents, discountCodeId } },
     }
     const {
       orders: [order],
@@ -44,6 +45,13 @@ export async function POST(req: NextRequest) {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
       },
     })
+
+    if (discountCodeId != null) {
+      await db.discountCode.update({
+        where: { id: discountCodeId },
+        data: { uses: { increment: 1 } },
+      })
+    }
 
     await resend.emails.send({
       from: `Support <${process.env.SENDER_EMAIL}>`,
