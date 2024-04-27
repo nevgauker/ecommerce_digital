@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   deleteDiscountCode,
   toggleDiscountCodeActive,
-} from "../../_actions/discountCodes"
+} from '../../_actions/discountCodes'
 
 export function ActiveToggleDropdownItem({
   id,
@@ -27,7 +27,7 @@ export function ActiveToggleDropdownItem({
         })
       }}
     >
-      {isActive ? "Deactivate" : "Activate"}
+      {isActive ? 'Deactivate' : 'Activate'}
     </DropdownMenuItem>
   )
 }
@@ -43,7 +43,7 @@ export function DeleteDropdownItem({
   const router = useRouter()
   return (
     <DropdownMenuItem
-      variant="destructive"
+      variant='destructive'
       disabled={disabled || isPending}
       onClick={() => {
         startTransition(async () => {

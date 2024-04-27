@@ -1,8 +1,8 @@
-import { DiscountCodeType } from "@prisma/client"
+import { DiscountCodeType } from '@prisma/client'
 
-const CURRENCY_FORMATTER = new Intl.NumberFormat("en-US", {
-  currency: "USD",
-  style: "currency",
+const CURRENCY_FORMATTER = new Intl.NumberFormat('en-US', {
+  currency: 'USD',
+  style: 'currency',
   minimumFractionDigits: 0,
 })
 
@@ -10,13 +10,13 @@ export function formatCurrency(amount: number) {
   return CURRENCY_FORMATTER.format(amount)
 }
 
-const NUMBER_FORMATTER = new Intl.NumberFormat("en-US")
+const NUMBER_FORMATTER = new Intl.NumberFormat('en-US')
 
 export function formatNumber(number: number) {
   return NUMBER_FORMATTER.format(number)
 }
 
-const PERCENT_FORMATTER = new Intl.NumberFormat("en-US", { style: "percent" })
+const PERCENT_FORMATTER = new Intl.NumberFormat('en-US', { style: 'percent' })
 
 export function formatDiscountCode({
   discountAmount,
@@ -26,22 +26,30 @@ export function formatDiscountCode({
   discountType: DiscountCodeType
 }) {
   switch (discountType) {
-    case "PERCENTAGE":
+    case 'PERCENTAGE':
       return PERCENT_FORMATTER.format(discountAmount / 100)
-    case "FIXED":
+    case 'FIXED':
       return formatCurrency(discountAmount)
     default:
       throw new Error(
-        `Invalid discount code type ${discountType satisfies never}`
+        `Invalid discount code type ${discountType satisfies never}`,
       )
   }
 }
 
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('en', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
 })
 
 export function formatDateTime(date: Date) {
   return DATE_TIME_FORMATTER.format(date)
+}
+
+const DATE_FORMATTER = new Intl.DateTimeFormat('en', {
+  dateStyle: 'medium',
+})
+
+export function formatDate(date: Date) {
+  return DATE_FORMATTER.format(date)
 }

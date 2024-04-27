@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
-import { PageHeader } from "../_components/PageHeader"
-import Link from "next/link"
+import { Button } from '@/components/ui/button'
+import { PageHeader } from '../_components/PageHeader'
+import Link from 'next/link'
 import {
   Table,
   TableBody,
@@ -8,7 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/table'
 import {
   CheckCircle2,
   Globe,
@@ -16,25 +16,25 @@ import {
   Minus,
   MoreVertical,
   XCircle,
-} from "lucide-react"
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import db from "@/db/db"
-import { Prisma } from "@prisma/client"
+} from '@/components/ui/dropdown-menu'
+import db from '@/db/db'
+import { Prisma } from '@prisma/client'
 import {
   formatDateTime,
   formatDiscountCode,
   formatNumber,
-} from "@/lib/formatters"
+} from '@/lib/formatters'
 import {
   ActiveToggleDropdownItem,
   DeleteDropdownItem,
-} from "./_components/DiscountCodeActions"
+} from './_components/DiscountCodeActions'
 
 const WHERE_EXPIRED: Prisma.DiscountCodeWhereInput = {
   OR: [
@@ -61,7 +61,7 @@ function getExpiredDiscountCodes() {
   return db.discountCode.findMany({
     select: SELECT_FIELDS,
     where: WHERE_EXPIRED,
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   })
 }
 
@@ -69,7 +69,7 @@ function getUnexpiredDiscountCodes() {
   return db.discountCode.findMany({
     select: SELECT_FIELDS,
     where: { NOT: WHERE_EXPIRED },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
   })
 }
 
@@ -81,10 +81,10 @@ export default async function DiscountCodesPage() {
 
   return (
     <>
-      <div className="flex justify-between items-center gap-4">
+      <div className='flex justify-between items-center gap-4'>
         <PageHeader>Coupons</PageHeader>
         <Button asChild>
-          <Link href="/admin/discount-codes/new">Add Coupon</Link>
+          <Link href='/admin/discount-codes/new'>Add Coupon</Link>
         </Button>
       </div>
       <DiscountCodesTable
@@ -92,8 +92,8 @@ export default async function DiscountCodesPage() {
         canDeactivate
       />
 
-      <div className="mt-8">
-        <h2 className="text-xl font-bold">Expired Coupons</h2>
+      <div className='mt-8'>
+        <h2 className='text-xl font-bold'>Expired Coupons</h2>
         <DiscountCodesTable discountCodes={expiredDiscountCodes} isInactive />
       </div>
     </>
@@ -115,8 +115,8 @@ function DiscountCodesTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-0">
-            <span className="sr-only">Is Active</span>
+          <TableHead className='w-0'>
+            <span className='sr-only'>Is Active</span>
           </TableHead>
           <TableHead>Code</TableHead>
           <TableHead>Discount</TableHead>
@@ -124,8 +124,8 @@ function DiscountCodesTable({
           <TableHead>Remaining Uses</TableHead>
           <TableHead>Orders</TableHead>
           <TableHead>Products</TableHead>
-          <TableHead className="w-0">
-            <span className="sr-only">Actions</span>
+          <TableHead className='w-0'>
+            <span className='sr-only'>Actions</span>
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -135,13 +135,13 @@ function DiscountCodesTable({
             <TableCell>
               {discountCode.isActive && !isInactive ? (
                 <>
-                  <span className="sr-only">Active</span>
+                  <span className='sr-only'>Active</span>
                   <CheckCircle2 />
                 </>
               ) : (
                 <>
-                  <span className="sr-only">Inactive</span>
-                  <XCircle className="stroke-destructive" />
+                  <span className='sr-only'>Inactive</span>
+                  <XCircle className='stroke-destructive' />
                 </>
               )}
             </TableCell>
@@ -166,14 +166,14 @@ function DiscountCodesTable({
               {discountCode.allProducts ? (
                 <Globe />
               ) : (
-                discountCode.products.map(p => p.name).join(", ")
+                discountCode.products.map(p => p.name).join(', ')
               )}
             </TableCell>
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <MoreVertical />
-                  <span className="sr-only">Actions</span>
+                  <span className='sr-only'>Actions</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {canDeactivate && (

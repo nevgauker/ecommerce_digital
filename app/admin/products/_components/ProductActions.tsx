@@ -1,13 +1,12 @@
+'use client'
 
-"use client"
-
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { useTransition } from "react"
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { useTransition } from 'react'
 import {
   deleteProduct,
   toggleProductAvailability,
-} from "../../_actions/products"
-import { useRouter } from "next/navigation"
+} from '../../_actions/products'
+import { useRouter } from 'next/navigation'
 
 export function ActiveToggleDropdownItem({
   id,
@@ -28,7 +27,7 @@ export function ActiveToggleDropdownItem({
         })
       }}
     >
-      {isAvailableForPurchase ? "Deactivate" : "Activate"}
+      {isAvailableForPurchase ? 'Deactivate' : 'Activate'}
     </DropdownMenuItem>
   )
 }
@@ -43,9 +42,8 @@ export function DeleteDropdownItem({
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   return (
-    <DropdownMenuItem 
-    
-      variant="destructive"
+    <DropdownMenuItem
+      variant='destructive'
       disabled={disabled || isPending}
       onClick={() => {
         startTransition(async () => {

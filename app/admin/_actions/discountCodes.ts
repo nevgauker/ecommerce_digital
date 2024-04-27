@@ -1,9 +1,9 @@
-"use server"
+'use server'
 
-import db from "@/db/db"
-import { DiscountCodeType } from "@prisma/client"
-import { notFound, redirect } from "next/navigation"
-import { z } from "zod"
+import db from '@/db/db'
+import { DiscountCodeType } from '@prisma/client'
+import { notFound, redirect } from 'next/navigation'
+import { z } from 'zod'
 
 const addSchema = z
   .object({
@@ -13,12 +13,12 @@ const addSchema = z
     allProducts: z.coerce.boolean(),
     productIds: z.array(z.string()).optional(),
     expiresAt: z.preprocess(
-      value => (value === "" ? undefined : value),
-      z.coerce.date().min(new Date()).optional()
+      value => (value === '' ? undefined : value),
+      z.coerce.date().min(new Date()).optional(),
     ),
     limit: z.preprocess(
-      value => (value === "" ? undefined : value),
-      z.coerce.number().int().min(1).optional()
+      value => (value === '' ? undefined : value),
+      z.coerce.number().int().min(1).optional(),
     ),
   })
   .refine(
@@ -26,21 +26,21 @@ const addSchema = z
       data.discountAmount <= 100 ||
       data.discountType !== DiscountCodeType.PERCENTAGE,
     {
-      message: "Percentage discount must be less than or equal to 100",
-      path: ["discountAmount"],
-    }
+      message: 'Percentage discount must be less than or equal to 100',
+      path: ['discountAmount'],
+    },
   )
   .refine(data => !data.allProducts || data.productIds == null, {
-    message: "Cannot select products when all products is selected",
-    path: ["productIds"],
+    message: 'Cannot select products when all products is selected',
+    path: ['productIds'],
   })
   .refine(data => data.allProducts || data.productIds != null, {
-    message: "Must select products when all products is not selected",
-    path: ["productIds"],
+    message: 'Must select products when all products is not selected',
+    path: ['productIds'],
   })
 
 export async function addDiscountCode(prevState: unknown, formData: FormData) {
-  const productIds = formData.getAll("productIds")
+  const productIds = formData.getAll('productIds')
   const result = addSchema.safeParse({
     ...Object.fromEntries(formData.entries()),
     productIds: productIds.length > 0 ? productIds : undefined,
@@ -65,7 +65,7 @@ export async function addDiscountCode(prevState: unknown, formData: FormData) {
     },
   })
 
-  redirect("/admin/discount-codes")
+  redirect('/admin/discount-codes')
 }
 
 export async function toggleDiscountCodeActive(id: string, isActive: boolean) {

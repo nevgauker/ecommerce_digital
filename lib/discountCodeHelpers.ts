@@ -1,5 +1,5 @@
-import db from "@/db/db"
-import { DiscountCodeType, Prisma } from "@prisma/client"
+import db from '@/db/db'
+import { DiscountCodeType, Prisma } from '@prisma/client'
 
 export function usableDiscountCodeWhere(productId: string) {
   return {
@@ -16,24 +16,24 @@ export function usableDiscountCodeWhere(productId: string) {
 
 export function getDiscountedAmount(
   discountCode: { discountAmount: number; discountType: DiscountCodeType },
-  priceInCents: number
+  priceInCents: number,
 ) {
   switch (discountCode.discountType) {
-    case "PERCENTAGE":
+    case 'PERCENTAGE':
       return Math.max(
         1,
         Math.ceil(
-          priceInCents - (priceInCents * discountCode.discountAmount) / 100
-        )
+          priceInCents - (priceInCents * discountCode.discountAmount) / 100,
+        ),
       )
-    case "FIXED":
+    case 'FIXED':
       return Math.max(
         1,
-        Math.ceil(priceInCents - discountCode.discountAmount * 100)
+        Math.ceil(priceInCents - discountCode.discountAmount * 100),
       )
     default:
       throw new Error(
-        `Invalid discount type ${discountCode.discountType satisfies never}`
+        `Invalid discount type ${discountCode.discountType satisfies never}`,
       )
   }
 }
