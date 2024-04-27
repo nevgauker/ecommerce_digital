@@ -7,7 +7,8 @@ next 14 ,typescript,prisma and tailwind css
 
 include  :  admin page , front store for  users and payment
 
-
+### Update: this version include a  coupons stsyem
+https://www.youtube.com/watch?v=qpApvVd_dCw&ab_channel=WebDevSimplified
 
 ## Getting Started
 
