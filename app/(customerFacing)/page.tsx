@@ -6,7 +6,7 @@ import { Product } from '@prisma/client'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
-
+import Image from 'next/image'
 const getMostPopularProducts = cache(
   () => {
     return db.product.findMany({
@@ -33,8 +33,13 @@ export default function HomePage() {
       <ProductGridSection
         title='Most Popular'
         productsFetcher={getMostPopularProducts}
+        bannerImageName='/most.png'
       />
-      <ProductGridSection title='Newest' productsFetcher={getNewestProducts} />
+      <ProductGridSection
+        title='Newest'
+        productsFetcher={getNewestProducts}
+        bannerImageName='/new.png'
+      />
     </main>
   )
 }
@@ -42,14 +47,24 @@ export default function HomePage() {
 type ProductGridSectionProps = {
   title: string
   productsFetcher: () => Promise<Product[]>
+  bannerImageName: string
 }
 
 function ProductGridSection({
   productsFetcher,
   title,
+  bannerImageName,
 }: ProductGridSectionProps) {
   return (
     <div className='space-y-4'>
+      <div className='relative w-full h-80'>
+        <Image
+          src={bannerImageName}
+          alt={'new products'}
+          fill
+          objectFit={'contain'}
+        />
+      </div>
       <div className='flex gap-4'>
         <h2 className='text-3xl font-bold'>{title}</h2>
         <Button variant='outline' asChild>
