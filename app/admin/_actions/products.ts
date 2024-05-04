@@ -5,6 +5,26 @@ import { z } from 'zod'
 import fs from 'fs/promises'
 import { notFound, redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import {
+  v2 as cloudinary,
+  UploadApiErrorResponse,
+  UploadApiResponse,
+} from 'cloudinary'
+import {
+  deleteFile,
+  extractFilenameFromURL,
+  FOLDER,
+  IMAGES_FOLDER,
+  productFilesUpload,
+  updateProductFiles,
+} from '@/lib/productFiles'
+import { error } from 'console'
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 const fileSchema = z.instanceof(File, { message: 'Required' })
 const imageSchema = fileSchema.refine(
@@ -19,6 +39,10 @@ const addSchema = z.object({
   image: imageSchema.refine(file => file.size > 0, 'Required'),
 })
 
+function isUploadApiResponse(response: any): response is UploadApiResponse {
+  return 'url' in response
+}
+
 export async function addProduct(prevState: unknown, formData: FormData) {
   const result = addSchema.safeParse(Object.fromEntries(formData.entries()))
   if (result.success === false) {
@@ -27,32 +51,43 @@ export async function addProduct(prevState: unknown, formData: FormData) {
 
   const data = result.data
 
-  await fs.mkdir('products', { recursive: true })
-  const filePath = `products/${crypto.randomUUID()}-${data.file.name}`
-  await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()))
+  //save  localy
 
-  await fs.mkdir('public/products', { recursive: true })
-  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
-  await fs.writeFile(
-    `public${imagePath}`,
-    Buffer.from(await data.image.arrayBuffer()),
-  )
+  // await fs.mkdir('products', { recursive: true })
+  // const filePath = `products/${crypto.randomUUID()}-${data.file.name}`
+  // await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()))
+  // await fs.mkdir('public/products', { recursive: true })
+  // const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
+  // await fs.writeFile(
+  //   `public${imagePath}`,
+  //   Buffer.from(await data.image.arrayBuffer()),
+  // )
 
-  await db.product.create({
-    data: {
-      isAvailableForPurchase: false,
-      name: data.name,
-      description: data.description,
-      priceInCents: data.priceInCents,
-      filePath,
-      imagePath,
-    },
-  })
+  //save remotly
 
-  revalidatePath('/')
-  revalidatePath('/products')
+  const completed = await productFilesUpload(data.file, data.image)
 
-  redirect('/admin/products')
+  const { fileUrl, imgUrl, error } = completed
+
+  if (fileUrl && imgUrl) {
+    await db.product.create({
+      data: {
+        isAvailableForPurchase: false,
+        name: data.name,
+        description: data.description,
+        priceInCents: data.priceInCents,
+        filePath: fileUrl,
+        imagePath: imgUrl,
+      },
+    })
+
+    revalidatePath('/')
+    revalidatePath('/products')
+
+    redirect('/admin/products')
+  } else {
+    console.log(error?.message)
+  }
 }
 
 const editSchema = addSchema.extend({
@@ -75,38 +110,95 @@ export async function updateProduct(
 
   if (product == null) return notFound()
 
-  let filePath = product.filePath
-  if (data.file != null && data.file.size > 0) {
-    await fs.unlink(product.filePath)
-    filePath = `products/${crypto.randomUUID()}-${data.file.name}`
-    await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()))
+  const completed = await updateProductFiles(
+    product,
+    data.file != null && data.file.size > 0 ? data.file : undefined,
+    data.image != null && data.image.size > 0 ? data.image : undefined,
+  )
+  const { fileUrl, imgUrl } = completed
+
+  if (fileUrl && imgUrl) {
+    await db.product.update({
+      where: { id },
+      data: {
+        isAvailableForPurchase: false,
+        name: data.name,
+        description: data.description,
+        priceInCents: data.priceInCents,
+        filePath: fileUrl,
+        imagePath: imgUrl,
+      },
+    })
+    revalidatePath('/')
+    revalidatePath('/products')
+
+    redirect('/admin/products')
+  } else if (fileUrl) {
+    await db.product.update({
+      where: { id },
+      data: {
+        isAvailableForPurchase: false,
+        name: data.name,
+        description: data.description,
+        priceInCents: data.priceInCents,
+        filePath: fileUrl,
+        imagePath: product.imagePath,
+      },
+    })
+    revalidatePath('/')
+    revalidatePath('/products')
+
+    redirect('/admin/products')
+  } else if (imgUrl) {
+    await db.product.update({
+      where: { id },
+      data: {
+        isAvailableForPurchase: false,
+        name: data.name,
+        description: data.description,
+        priceInCents: data.priceInCents,
+        filePath: product.filePath,
+        imagePath: imgUrl,
+      },
+    })
+    revalidatePath('/')
+    revalidatePath('/products')
+
+    redirect('/admin/products')
   }
 
-  let imagePath = product.imagePath
-  if (data.image != null && data.image.size > 0) {
-    await fs.unlink(`public${product.imagePath}`)
-    imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
-    await fs.writeFile(
-      `public${imagePath}`,
-      Buffer.from(await data.image.arrayBuffer()),
-    )
-  }
+  // let filePath = product.filePath
+  // if (data.file != null && data.file.size > 0) {
+  //   await fs.unlink(product.filePath)
+  //   filePath = `products/${crypto.randomUUID()}-${data.file.name}`
+  //   await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()))
+  // }
 
-  await db.product.update({
-    where: { id },
-    data: {
-      name: data.name,
-      description: data.description,
-      priceInCents: data.priceInCents,
-      filePath,
-      imagePath,
-    },
-  })
+  // let imagePath = product.imagePath
+  // if (data.image != null && data.image.size > 0) {
+  //   await fs.unlink(`public${product.imagePath}`)
+  //   imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
+  //   await fs.writeFile(
+  //     `public${imagePath}`,
+  //     Buffer.from(await data.image.arrayBuffer()),
+  //   )
+  // }
 
-  revalidatePath('/')
-  revalidatePath('/products')
+  // await db.product.update({
+  //   where: { id },
+  //   data: {
+  //     name: data.name,
+  //     description: data.description,
+  //     priceInCents: data.priceInCents,
+  //     filePath,
+  //     imagePath,
+  //   },
+  // })
 
-  redirect('/admin/products')
+  // revalidatePath('/')
+  // revalidatePath('/products')
+
+  // redirect('/admin/products')
 }
 
 export async function toggleProductAvailability(
@@ -124,8 +216,19 @@ export async function deleteProduct(id: string) {
 
   if (product == null) return notFound()
 
-  await fs.unlink(product.filePath)
-  await fs.unlink(`public${product.imagePath}`)
+  const [filename, extension]: [string, string] = extractFilenameFromURL(
+    product.filePath,
+  )
+  const filePublicId = `${filename}.${extension}`
+  await deleteFile(FOLDER, filePublicId)
+
+  const [imageFileName, imageExtension]: [string, string] =
+    extractFilenameFromURL(product.imagePath)
+  const imageFilePublicId = `${imageFileName}.${imageExtension}`
+  await deleteFile(IMAGES_FOLDER, imageFilePublicId)
+
+  // await fs.unlink(product.filePath)
+  // await fs.unlink(`public${product.imagePath}`)
 
   revalidatePath('/')
   revalidatePath('/products')
